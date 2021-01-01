@@ -40,11 +40,24 @@ try {
 
     if (argv.release) {
         const release = changelog.releases.find((release) => {
-            return !release.date && release.version;
+            return !release.date;
         });
 
         if (release) {
+            if (!release.version) {
+                const latestRelease = changelog.releases.find((release) => release.date && release.version);
+                if(release.changes.find((change) => change.type === 'changed' || change.type === 'removed')) {
+                    release.version = new Semver(`${latestRelease.version.major + 1}.0.0}`);
+                } else if (release.changes.find((change) => change.type === 'added')) {
+                    release.version = new Semver(`${latestRelease.version.major}.${latestRelease.version.minor + 1}.0}`);
+                } else {
+                    release.version = new Semver(`${latestRelease.version.major}.${latestRelease.version.minor}.${latestRelease.version.patch + 1}`);
+                }
+            }
             release.date = new Date();
+        } else {
+            console.error(red('Nothing to release'));
+            process.exit(1);
         }
     }
 

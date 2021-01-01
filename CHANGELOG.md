@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Automatic versioning added to --release command in case that version is not explicitly defined
+
 ## [0.10.2] - 2020-10-11
 ### Added
 - New command option --quiet added to cli [#14] [#15]
