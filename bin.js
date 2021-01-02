@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const Semver = require('semver/classes/semver');
 const url = require('url');
 const { parser, Changelog, Release } = require('./src');
 const argv = require('yargs-parser')(process.argv.slice(2), {
@@ -44,19 +45,28 @@ try {
         });
 
         if (release) {
+            let countChanges = 0;
+            if(release.changes.forEach((changeTypeItems) => {
+                countChanges += changeTypeItems.length;
+            }));
+            if(countChanges === 0) {
+                console.error(red('No unreleased changes found'));
+                process.exit(1);
+            }
             if (!release.version) {
                 const latestRelease = changelog.releases.find((release) => release.date && release.version);
-                if(release.changes.find((change) => change.type === 'changed' || change.type === 'removed')) {
-                    release.version = new Semver(`${latestRelease.version.major + 1}.0.0}`);
-                } else if (release.changes.find((change) => change.type === 'added')) {
-                    release.version = new Semver(`${latestRelease.version.major}.${latestRelease.version.minor + 1}.0}`);
+                if(release.changes.get('changed').length > 0 || release.changes.get('removed').length > 0) {
+                    release.version = new Semver(`${latestRelease.version.major + 1}.0.0`);
+                } else if (release.changes.get('added').length > 0) {
+                    release.version = new Semver(`${latestRelease.version.major}.${latestRelease.version.minor + 1}.0`);
                 } else {
                     release.version = new Semver(`${latestRelease.version.major}.${latestRelease.version.minor}.${latestRelease.version.patch + 1}`);
                 }
             }
             release.date = new Date();
+            changelog.releases.unshift(new Release(undefined, undefined));
         } else {
-            console.error(red('Nothing to release'));
+            console.error(red('Unreleased section not found'));
             process.exit(1);
         }
     }
